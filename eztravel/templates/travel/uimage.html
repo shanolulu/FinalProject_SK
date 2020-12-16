@@ -1,0 +1,120 @@
+{% extends 'travel/index.html' %}
+
+{% block content %}
+{% load static %}
+<center>
+<form id="myForm" method="POST" class="post-form" enctype="multipart/form-data">
+    <div style="background-image: url(static/img/bgcolor.png); 
+                background-size: 850px 500px; width:850px; height:500px;">
+        {% csrf_token %}
+        <table style="text-align: center;">
+
+            <tr><td colspan="2" style="height:150px;"></td></tr>
+            <tr>
+                <td colspan="2"><h3><span>사진 속 장소가 궁금한 이미지를 업로드 해주세요</h3></td>
+            </tr>
+            <tr>
+                <td colspan="2"><p></p></td>
+            </tr>
+            <tr><td colspan="2" style="height:10px;"></td></tr>
+            <tr>
+                <td style="width:130px;"></td>
+                <td><div style="font-size:160%;">{{ form.as_p }}</div></td>
+            </tr>
+            <tr><td colspan="2" style="height:15px;"></td></tr>
+            <tr>
+                <td colspan="2"><center>
+                    <button class="btn btn-lg btn-primary btn-block font-weight-bold mb-2"
+                        id="submit" type="submit"  style="font-size:130%; width:200px;">업로드하기</button></center>
+            </td></tr>
+        </table>
+    </div>
+</form>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+<script type="text/javascript">
+    var place;
+    var im_file;
+    $("#submit").click(function(e) {
+        e.preventDefault();
+        var form = $("#myForm")[0]; 
+        var formData = new FormData(form);
+        $.ajax({
+            cache : false,
+            type: "POST",
+            url: "uimage/",
+            processData: false,
+            contentType: false,
+            data : formData,
+            success:function(data){
+                place = data["result"]
+                console.log(place)
+                im_file = data["file_url"]
+                console.log(im_file)
+                var show_img = "<img src='"+im_file+"'width=500px, height=300px>"
+                $("#myForm").hide();
+                $('#predict').html(place);
+                $('#file_place').html(show_img);
+                $('#js_data_input').val(place)
+            },
+            beforeSend:function(){
+                console.log('beforesend')
+                $("#loading").show();
+                $("#myForm").hide();
+            },
+            complete:function(){
+                console.log('complete')
+                $("#showing").show();
+                $("#movetonext").show();
+                $("#loading").hide();
+            },
+        });
+        return place
+    });
+</script>
+
+<script>
+    $('#js_data_input').val(place);
+</script>
+
+<div class="typography-line" style="padding-left:0; display:None;" id="loading">
+    <h1>분&nbsp&nbsp석&nbsp&nbsp중</h1>
+    <img src="{% static 'img/loading_4.gif' %}">
+</div>
+
+<div id="showing" style="display:None;">
+    <div style="width:800px; height:520px; background-color: #444444;"><br>
+        <div style="background-image: url(static/img/bgcolor.png); 
+                        background-size: 545px 325px; width:545px; height:325px;">
+            <div style="height:14px;"></div>
+            <div id="file_place"></div>
+        </div>
+        <div style="height:15px;"></div>
+        <p style="font-size:110%;"><span>사진 속 장소는&nbsp</span>
+            <span style="font-size:160%;" id="predict">
+            </span>
+            <span>(으)로 예측됩니다.</span></p><br>
+    <div>
+</div>
+<div id="movetonext" style="display:None;"><center>
+    <table><tr>
+        <td>
+        <a href="{% url 'uimage' %}" style="width:200px; font-weight:bold;" 
+            class="btn btn-lg btn-primary btn-block font-weight-bold mb-2">다른 사진 업로드</a></td>
+        <td style="width:30px;"></td>
+        <td>
+        <form method="post" action="{% url 'getmap'%}" id="create">
+            {% csrf_token %}
+            <input type="hidden" name="result_data" value="" id="js_data_input">
+            <input type="submit" name="submit" class="btn-lg btn-info btn-block font-weight-bold mb-2" 
+                value="지도에서 확인하기">
+        </form></td>
+    </tr></table>
+</center></div>
+
+
+
+
+</center>
+
+{% endblock%}
